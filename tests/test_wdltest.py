@@ -2,7 +2,14 @@ from unittest import TestCase
 
 import wdltest
 
-class TestHello(TestCase):
-    def test_is_string(self):
-        s = wdltest.hello()
-        self.assertTrue(isinstance(s, basestring))
+class TestWdlTest(TestCase):
+  def testHelloIsString(self):
+    s = wdltest.hello()
+    self.assertTrue(isinstance(s, basestring))
+
+  def testReadConfig(self):
+    self.assertTrue(False, str(wdltest.config().sections()))
+    #self.assertTrue(wdltest.config())
+
+if __name__ == "__main__":
+    unittest.main()

@@ -21,5 +21,5 @@ setuptools.setup(
     python_requires='>=3.6',
     scripts=['bin/wdltest'],
     test_suite='nose.collector',
-    tests_require=['nose'],
+    tests_require=['nose>=1.0'],
 )

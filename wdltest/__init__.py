@@ -1,2 +1,8 @@
+import system_utils
+import conf
+
 def hello():
-    return ('Hello wdltest')
+    return system_utils.hello()
+
+def config():
+    return conf.readConfig()
