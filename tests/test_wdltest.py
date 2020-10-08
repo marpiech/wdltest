@@ -4,12 +4,11 @@ import wdltest
 
 class TestWdlTest(TestCase):
   def testHelloIsString(self):
-    s = wdltest.hello()
-    self.assertTrue(isinstance(s, basestring))
+    self.assertTrue(wdltest.hello() == "wdltest hello")
 
-  def testReadConfig(self):
-    self.assertTrue(False, str(wdltest.config().sections()))
-    #self.assertTrue(wdltest.config())
+  def testAnalysis(self):
+    exitCode = wdltest.testrun()
+    self.assertTrue(exitCode == 0)
 
 if __name__ == "__main__":
     unittest.main()
