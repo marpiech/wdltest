@@ -16,6 +16,12 @@
                     "command":"cat $file | grep -q provenance_domain"
                 },
                 {
+                    "name":"Missing file exists",
+                    "file":"missing",
+                    "error_message":"Missing file not found in missing",
+                    "command":"cat $file | grep -q provenance_domain"
+                },
+                {
                     "name":"Execution domain exists",
                     "file":"bco",
                     "error_message":"Execution domain not found in bco",

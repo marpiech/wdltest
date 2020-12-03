@@ -7,6 +7,9 @@ import socket
 import random
 import time
 import json
+import regex
+from shutil import copyfile
+from datetime import datetime
 
 class CromwellHandler(object):
 
@@ -15,11 +18,13 @@ class CromwellHandler(object):
         self.config = config
         self.checkJava()
         self.downloadCromwell()
-        self.localhost = "127.0.0.1"
-        self.port = self.getPort()
-        cromwellThread = threading.Thread(target = self.startCromwell)
-        cromwellThread.start()
-        self.waitForCromwell()
+        self.mode = self.config['cromwell']['mode']
+        if(self.mode == "server"):
+            self.port = self.getPort()
+            self.localhost = "127.0.0.1"
+            cromwellThread = threading.Thread(target = self.startCromwell)
+            cromwellThread.start()
+            self.waitForCromwell()
 
     def checkJava(self):
         self.logger.debug('Checking if java is installed')
@@ -40,6 +45,9 @@ class CromwellHandler(object):
             self.logger.debug('Downloading cromwell')
             request = requests.get(url, allow_redirects=True)
             open(path, 'wb').write(request.content)
+        configSourcePath = os.path.dirname(__file__) + "/cromwell.cfg"
+        configDestinationPath = dir + "/cromwell.cfg" 
+        copyfile(configSourcePath, configDestinationPath)
 
     def getPort(self):
         for i in range(0, 19):
@@ -58,7 +66,7 @@ class CromwellHandler(object):
         sock.close()
 
     def startCromwell(self):
-        bashCommand = "java -Dwebservice.port=" + str(self.port) + " -jar " + self.config['paths']['dir'] + "/cromwell.jar server"
+        bashCommand = "java -Dconfig.file=" + self.config['paths']['dir'] + " -Dwebservice.port=" + str(self.port) + " -jar " + self.config['paths']['dir'] + "/cromwell.jar server"
         self.cromwellProcess = subprocess.Popen(bashCommand.split(), cwd=self.config['paths']['dir'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def getCromwellUrl(self):
@@ -76,21 +84,74 @@ class CromwellHandler(object):
                 pass
         raise Exception("Could not connect to Cromwell")
 
-    def submitJob(self, wdl, inputs):      
-        multipart_form_data = {
-            'workflowSource': ("workflow.wdl", open( wdl, "rb")),
-            'workflowInputs': ("inputs.json", json.dumps(inputs)),
-        }
-        response = requests.post(self.getCromwellUrl() + "/api/workflows/v1", files=multipart_form_data)
-        self.job = json.loads(response.content.decode("utf-8"))["id"]
-        self.logger.debug("Submitted job " + self.job)
+    def submitJob(self, wdl, inputs):
+        self.logger.debug("Submmitting job in " + self.mode + " mode")
+        if self.mode == "server":
+            multipart_form_data = {
+                'workflowSource': ("workflow.wdl", open( wdl, "rb")),
+                'workflowInputs': ("inputs.json", json.dumps(inputs)),
+            }
+            response = requests.post(self.getCromwellUrl() + "/api/workflows/v1", files=multipart_form_data)
+            self.job = json.loads(response.content.decode("utf-8"))["id"]
+            self.logger.debug("Submitted job " + self.job)
+        if self.mode == "run":
+            self.runPath = self.config['paths']['dir'] + "/" + os.path.basename(os.path.dirname(wdl)) + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            if(not os.path.isdir(self.runPath)):
+                os.makedirs(self.runPath)
+            self.inputPath = self.runPath + "/inputs.json"
+            self.logPath = self.runPath + "/cromwell-execution.log"
+
+            self.returnCode = -1
+            self.logger.debug("PATH: " + self.runPath)
+            with open(self.inputPath, "w") as inputs_file:
+                print(json.dumps(inputs), file=inputs_file)
+            bashCommand = "java -Dconfig.file=" + self.config['paths']['dir'] + "/cromwell.cfg" + " -jar " + self.config['paths']['dir'] + "/cromwell.jar run " + wdl + " --inputs " + self.inputPath
+            self.cromwellProcess = subprocess.Popen(bashCommand.split(), cwd=self.runPath, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.log = ""
+            with open(self.logPath, "w") as log_file:
+                for line in iter(self.cromwellProcess.stdout.readline, ""):
+                    print(line.decode("utf-8")[:150].replace('\n', ''), end ="\r")
+                    print(line.decode("utf-8").replace('\n', ''), file=log_file)
+                    self.log = self.log + line.decode("utf-8").replace('\n', '')
+                    if line == b'' and self.cromwellProcess.poll() is not None:
+                        break
+            #self.logger.debug(self.log)
+            pattern = regex.compile(r'\{(?:[^{}]|(?R))*\}')
+            jsons = pattern.findall(self.log)
+            for jsonitem in jsons:
+                if jsonitem.find('"outputs":'):
+                    rawoutputs = json.loads(jsonitem)
+            #self.logger.debug(self.outputs)
+            rawoutputs = rawoutputs["outputs"]
+            self.outputs = dict()
+            for key in rawoutputs:
+                #self.logger.debug("key: " + key)
+                try:
+                    
+                    #self.logger.debug("key: " + key.split('.')[-1])
+                    
+                    self.outputs[key.split('.')[-1]] = rawoutputs[key]
+                except Exception as e:
+                    self.logger.debug("error: " + str(e))
+            #self.logger.debug(self.outputs)
+            self.cromwellProcess.stdout.close()
+            self.returnCode = self.cromwellProcess.wait()
+            self.logger.debug("Finished run")
 
     def getStatus(self):
-        response = requests.get(self.getCromwellUrl() + "/api/workflows/v1/" + self.job + "/status")
-        status = json.loads(response.content.decode("utf-8"))
-        if status["status"] == "fail":
-            return "Submitted unregistered"
-        return status["status"]
+        if self.mode == "server":
+            response = requests.get(self.getCromwellUrl() + "/api/workflows/v1/" + self.job + "/status")
+            status = json.loads(response.content.decode("utf-8"))
+            if status["status"] == "fail":
+                return "Submitted unregistered"
+            return status["status"]
+        if self.mode == "run":
+            if self.returnCode == -1:
+                return "Running"
+            if self.returnCode == 0:
+                return "Succeeded"
+            if self.returnCode > 0:
+                return "Failed"
 
     def getMetadata(self):
         response = requests.get(self.getCromwellUrl() + "/api/workflows/v1/" + self.job + "/metadata")
@@ -101,14 +162,22 @@ class CromwellHandler(object):
         return json.loads(response.content.decode("utf-8"))
 
     def getPathToOutput(self, desiredOutput):
-        outputs = self.getOutputs()["outputs"]
-        #print(outputs)
-        for key in outputs.keys():
-            workflow, output = os.path.splitext(key)
-            if(output.replace('.', '') == desiredOutput):
-                return outputs[key]
-        raise Exception("Could not find path to output: " + desiredOutput)
+        if self.mode == "server":
+            outputs = self.getOutputs()["outputs"]
+            #print(outputs)
+            for key in outputs.keys():
+                workflow, output = os.path.splitext(key)
+                if(output.replace('.', '') == desiredOutput):
+                    return outputs[key]
+            raise Exception("Could not find path to output: " + desiredOutput)
+        if self.mode == "run":
+            if desiredOutput in self.outputs:
+                return self.outputs[desiredOutput]
+            else:
+                return 'missing'
+            
 
     def stop(self):
-        self.cromwellProcess.terminate()
-        self.cromwellProcess.kill()
+        if self.mode == "server":
+            self.cromwellProcess.terminate()
+            self.cromwellProcess.kill()

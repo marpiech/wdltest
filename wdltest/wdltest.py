@@ -29,5 +29,10 @@ class Wdltest(object):
         self.cromwell.stop()
         return exitCode
 
+    def localrun(self):
+        exitCode = self.testRunner.run()
+        self.cromwell.stop()
+        return exitCode
+
     def stop(self):
         self.cromwell.stop()

@@ -7,8 +7,12 @@ class TestWdlTest(TestCase):
     self.assertTrue(wdltest.hello() == "wdltest hello")
 
   def testAnalysis(self):
-    exitCode = wdltest.testrun()
+    exitCode = wdltest.server_testrun()
     self.assertTrue(exitCode == 0)
+
+  def testAnalysis(self):
+    exitCode = wdltest.local_testrun()
+    self.assertTrue(exitCode == 1)
 
 if __name__ == "__main__":
     unittest.main()

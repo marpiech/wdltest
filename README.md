@@ -54,7 +54,11 @@ twine upload --repository testpypi dist/wdltest-0.0.5*
 ```
 pip3 install --upgrade --index-url https://test.pypi.org/simple/ --no-deps wdltest==0.0.5
 ```
-
+### kill cromwells
+```
+ps aux | grep Dweb | cut -d " " -f 2 | xargs kill -9
+ps aux | grep Dweb
+```
 ## Versions
 ### 0.0.10
 Added return code 1 on failure

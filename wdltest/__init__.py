@@ -34,5 +34,8 @@ signal.signal(signal.SIGINT, sigterm_handler)
 def hello():
     return "wdltest hello"
 
-def testrun():
-    return Wdltest().run()
+#def server_testrun():
+#    return Wdltest().run()
+
+def local_testrun():
+    return Wdltest().localrun()
