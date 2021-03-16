@@ -8,6 +8,7 @@ import random
 import time
 import json
 import regex
+import getpass ## for username
 from shutil import copyfile
 from datetime import datetime
 
@@ -39,15 +40,19 @@ class CromwellHandler(object):
         dir = self.config['paths']['dir']
         if(not os.path.isdir(dir)):
             os.mkdir(dir)
+            os.chmod(dir, 0o776)
         path = dir + "/cromwell.jar"
         url = self.config['cromwell']['url']
         if(not os.path.isfile(path)):
             self.logger.debug('Downloading cromwell')
             request = requests.get(url, allow_redirects=True)
             open(path, 'wb').write(request.content)
+            os.chmod(path, 0o666)
         configSourcePath = os.path.dirname(__file__) + "/cromwell.cfg"
         configDestinationPath = dir + "/cromwell.cfg" 
-        copyfile(configSourcePath, configDestinationPath)
+        if(not os.path.isfile(configDestinationPath)):
+            copyfile(configSourcePath, configDestinationPath)
+            os.chmod(configDestinationPath, 0o666)
 
     def getPort(self):
         for i in range(0, 19):
@@ -95,9 +100,14 @@ class CromwellHandler(object):
             self.job = json.loads(response.content.decode("utf-8"))["id"]
             self.logger.debug("Submitted job " + self.job)
         if self.mode == "run":
-            self.runPath = self.config['paths']['dir'] + "/" + os.path.basename(os.path.dirname(wdl)) + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            self.basePath = self.config['paths']['dir'] + "/" + getpass.getuser() + "/" + os.path.basename(os.path.dirname(wdl))
+            if(not os.path.isdir(self.basePath)):
+                os.makedirs(self.basePath)
+                os.chmod(self.basePath, 0o776)
+            self.runPath = self.basePath + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
             if(not os.path.isdir(self.runPath)):
                 os.makedirs(self.runPath)
+                os.chmod(self.runPath, 0o776)
             self.inputPath = self.runPath + "/inputs.json"
             self.logPath = self.runPath + "/cromwell-execution.log"
 
@@ -110,16 +120,21 @@ class CromwellHandler(object):
             self.log = ""
             with open(self.logPath, "w") as log_file:
                 for line in iter(self.cromwellProcess.stdout.readline, ""):
-                    print(line.decode("utf-8")[:150].replace('\n', ''), end ="\r")
-                    print(line.decode("utf-8").replace('\n', ''), file=log_file)
+                    printline = line.decode("utf-8").replace('\n', '')
+                    if "to Done" in printline:
+                        print(printline)
+                    print(printline, file=log_file)
                     self.log = self.log + line.decode("utf-8").replace('\n', '')
                     if line == b'' and self.cromwellProcess.poll() is not None:
                         break
             #self.logger.debug(self.log)
             pattern = regex.compile(r'\{(?:[^{}]|(?R))*\}')
             jsons = pattern.findall(self.log)
+            #self.logger.debug(jsons)
             for jsonitem in jsons:
-                if jsonitem.find('"outputs":'):
+                #self.logger.debug(jsonitem)
+                if jsonitem.find('"outputs":') != -1:
+                    #self.logger.debug("IN")
                     rawoutputs = json.loads(jsonitem)
             #self.logger.debug(self.outputs)
             rawoutputs = rawoutputs["outputs"]
@@ -133,10 +148,10 @@ class CromwellHandler(object):
                     self.outputs[key.split('.')[-1]] = rawoutputs[key]
                 except Exception as e:
                     self.logger.debug("error: " + str(e))
-            #self.logger.debug(self.outputs)
             self.cromwellProcess.stdout.close()
             self.returnCode = self.cromwellProcess.wait()
             self.logger.debug("Finished run")
+            self.logger.info("Path to log " + self.logPath)
 
     def getStatus(self):
         if self.mode == "server":

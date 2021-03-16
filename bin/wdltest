@@ -4,17 +4,17 @@ import wdltest
 import argparse
 import os
 
-__version__ = '0.0.11'
+__version__ = '1.0.1'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='WDL testing framework')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(__version__))
     parser.add_argument('--testconfig', '-t', metavar='testconfig', type=str, required=True, help='configuration file')
+    parser.add_argument('--index', '-i', metavar='testindex', type=int, required=False, default = -1, help='index of test from config file (0-based)')
     args = parser.parse_args()
 
     arguments = parser.parse_args()
-    #print(os.path.dirname(__file__) + "/../wdltest.cfg")
-    test = wdltest.Wdltest(testConfigFile = arguments.testconfig)
+    test = wdltest.Wdltest(testConfigFile = arguments.testconfig, index = arguments.index)
     exitCode = test.run()
     test.stop()
     exit(exitCode)
