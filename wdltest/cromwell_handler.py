@@ -89,7 +89,7 @@ class CromwellHandler(object):
                 pass
         raise Exception("Could not connect to Cromwell")
 
-    def submitJob(self, wdl, inputs):
+    def submitJob(self, wdl, inputs, id):
         self.logger.debug("Submmitting job in " + self.mode + " mode")
         if self.mode == "server":
             multipart_form_data = {
@@ -104,7 +104,7 @@ class CromwellHandler(object):
             if(not os.path.isdir(self.basePath)):
                 os.makedirs(self.basePath)
                 os.chmod(self.basePath, 0o776)
-            self.runPath = self.basePath + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            self.runPath = self.basePath + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "/" + id
             if(not os.path.isdir(self.runPath)):
                 os.makedirs(self.runPath)
                 os.chmod(self.runPath, 0o776)
@@ -118,6 +118,7 @@ class CromwellHandler(object):
             bashCommand = "java -Dconfig.file=" + self.config['paths']['dir'] + "/cromwell.cfg" + " -jar " + self.config['paths']['dir'] + "/cromwell.jar run " + wdl + " --inputs " + self.inputPath
             self.cromwellProcess = subprocess.Popen(bashCommand.split(), cwd=self.runPath, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.log = ""
+            self.status = "Running"
             with open(self.logPath, "w") as log_file:
                 for line in iter(self.cromwellProcess.stdout.readline, ""):
                     printline = line.decode("utf-8").replace('\n', '')
@@ -125,33 +126,46 @@ class CromwellHandler(object):
                         print(printline)
                     print(printline, file=log_file)
                     self.log = self.log + line.decode("utf-8").replace('\n', '')
+                    if "workflow finished with status" in printline:
+                        self.status = printline.split()[-1].replace("'", '').replace('.',' ')
                     if line == b'' and self.cromwellProcess.poll() is not None:
                         break
-            #self.logger.debug(self.log)
-            pattern = regex.compile(r'\{(?:[^{}]|(?R))*\}')
-            jsons = pattern.findall(self.log)
-            #self.logger.debug(jsons)
-            for jsonitem in jsons:
-                #self.logger.debug(jsonitem)
-                if jsonitem.find('"outputs":') != -1:
-                    #self.logger.debug("IN")
-                    rawoutputs = json.loads(jsonitem)
-            #self.logger.debug(self.outputs)
-            rawoutputs = rawoutputs["outputs"]
-            self.outputs = dict()
-            for key in rawoutputs:
-                #self.logger.debug("key: " + key)
-                try:
+            #print (self.status)
+            if "Succeeded" in self.status:
+                #print("in Succeeded")
+                #self.logger.debug(self.log)
+                pattern = regex.compile(r'\{(?:[^{}]|(?R))*\}')
+                jsons = pattern.findall(self.log)
+                #self.logger.debug(jsons)
+                for jsonitem in jsons:
+                    #self.logger.debug(jsonitem)
+                    if jsonitem.find('"outputs":') != -1:
+                        #self.logger.debug("IN")
+                        rawoutputs = json.loads(jsonitem)
+                #self.logger.debug(self.outputs)
+                rawoutputs = rawoutputs["outputs"]
+                self.outputs = dict()
+                for key in rawoutputs:
+                    #self.logger.debug("key: " + key)
+                    try:
+                        
+                        #self.logger.debug("key: " + key.split('.')[-1])
                     
-                    #self.logger.debug("key: " + key.split('.')[-1])
-                    
-                    self.outputs[key.split('.')[-1]] = rawoutputs[key]
-                except Exception as e:
-                    self.logger.debug("error: " + str(e))
-            self.cromwellProcess.stdout.close()
-            self.returnCode = self.cromwellProcess.wait()
-            self.logger.debug("Finished run")
-            self.logger.info("Path to log " + self.logPath)
+                        self.outputs[key.split('.')[-1]] = rawoutputs[key]
+                    except Exception as e:
+                        self.logger.debug("error: " + str(e))
+                self.cromwellProcess.stdout.close()
+                self.returnCode = self.cromwellProcess.wait()
+                self.logger.debug("Finished run")
+                self.logger.info("Path to log " + self.logPath)
+            else:
+                #print("not succeeded")
+                self.outputs = dict()
+                self.cromwellProcess.stdout.close()
+                self.logger.info("Workflow failed")
+                self.logger.info("Path to log " + self.logPath)
+                self.returnCode = 1
+            #print(self.outputs)
 
     def getStatus(self):
         if self.mode == "server":
@@ -187,7 +201,10 @@ class CromwellHandler(object):
             raise Exception("Could not find path to output: " + desiredOutput)
         if self.mode == "run":
             if desiredOutput in self.outputs:
-                return self.outputs[desiredOutput]
+                output = self.outputs[desiredOutput]
+                if "list" in type(output).__name__:
+                    return output[0]
+                return output
             else:
                 return 'missing'
             

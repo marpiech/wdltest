@@ -43,7 +43,7 @@ class TestRunner(object):
             self.logger.info("Excluding test with index " + str(testIndex))
             return 0
         try:
-            self.cromwell.submitJob(self.configuration["wdl"], testJson["inputs"])
+            self.cromwell.submitJob(self.configuration["wdl"], testJson["inputs"], str(testIndex))
             status = "Started"
             start = time.time()
             while status != "Failed" and status != "Succeeded":
