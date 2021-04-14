@@ -12,7 +12,7 @@ class TestWdlTest(TestCase):
 
   def testAnalysis(self):
     exitCode = wdltest.local_testrun()
-    self.assertTrue(exitCode == 1)
+    self.assertTrue(exitCode == 0)
 
 if __name__ == "__main__":
     unittest.main()

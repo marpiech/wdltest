@@ -51,6 +51,7 @@ class TestConfiguration(object):
                 {
                     "file":"bco",
                     "name":"Description domain exists and is not empty",
+                    "warning":True,
                     "command":"grep -q -m1 descripcion_domain $file && jq -e 'if (.description_domain | length) == 0 then false else true end' $file"
                 }]
         return bcoConditions

@@ -107,7 +107,7 @@ twine upload --repository pypi dist/wdltest-1.0.0*
 ```
 ### install
 ```
-pip3 install --upgrade --no-deps wdltest==1.0.0
+pip3 install --upgrade --no-deps wdltest==1.0.6
 ```
 ### kill cromwells
 ```

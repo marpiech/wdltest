@@ -4,7 +4,7 @@ import wdltest
 import argparse
 import os
 
-__version__ = '1.0.5'
+__version__ = '1.0.7'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='WDL testing framework')

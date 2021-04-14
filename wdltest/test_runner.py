@@ -6,6 +6,7 @@ import logging
 import subprocess
 import threading
 import time
+import socket
 
 class TestRunner(object):
 
@@ -39,10 +40,20 @@ class TestRunner(object):
     def runTest(self, testIndex, testJson):
         self.sema.acquire()
         exitCode = 0
+        generictext = "Test (idx " + str(testIndex) + "; " + str(testJson["name"]) + ")"
         if self.index != -1 and self.index != testIndex:
             self.logger.info("Excluding test with index " + str(testIndex))
+            self.logger.info("Excluded test " + str(testJson["name"]))
+            self.sema.release()
             return 0
+        if ("hostnames" in testJson):
+            if not (socket.gethostname() in testJson["hostnames"]):
+                self.logger.info("Excluding test because of hostname mismatch " + str(socket.gethostname()))
+                self.logger.info("Excluded test " + str(testJson["name"]))
+                self.sema.release()
+                return 0
         try:
+            self.logger.info("Test name: " + str(testJson["name"]))
             self.cromwell.submitJob(self.configuration["wdl"], testJson["inputs"], str(testIndex))
             status = "Started"
             start = time.time()
@@ -57,28 +68,36 @@ class TestRunner(object):
                 print("Cromwell job status " + status + " " + str(diff) + "s                     ", end ="\r")
             print()
             for condition in testJson["conditions"]:
+                errorText = "[ERROR]"
+                errorExitCode = 1
+                if "warning" in condition:
+                    if condition["warning"]:
+                        errorText = "[WARNING]"
+                        errorExitCode = 0
                 try:
                     if self.cromwell.getPathToOutput(condition["file"]) == 'missing':
-                        self.logger.error("[ERROR] Test '" + condition["name"] + "' failed with message: no " + condition["file"] + " file in workflow outputs")
-                        exitCode = 1
+                        self.logger.error(errorText + " " + generictext + " '" + condition["name"] + "' failed with message: no " + condition["file"] + " file in workflow outputs")
+                        exitCode = errorExitCode
                     else:
                         bashCommand = condition["command"].replace("$file", self.cromwell.getPathToOutput(condition["file"]))
+                        if "index" in condition:
+                            bashCommand = condition["command"].replace("$file", self.cromwell.getPathToOutput(condition["file"], condition["index"]))
                         process = subprocess.Popen(bashCommand, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                         output, error = process.communicate()
                         output = output.decode("utf-8").strip() + error.decode("utf-8").strip()
                         returnCode = process.poll()
                         if returnCode == 0:
-                            self.logger.info("[PASSED] Test '" + condition["name"] + "'")
+                            self.logger.info("[PASSED] " + generictext + " '" + condition["name"] + "'")
                         else:
                             if "error_message" in condition.keys():
-                                self.logger.error("[ERROR] Test '" + condition["name"] + "' failed with message: " + condition["error_message"])
+                                self.logger.error(errorText + " " + generictext + " '" + condition["name"] + "' failed with message: " + condition["error_message"])
                             else:
-                                self.logger.error("[ERROR] Test '" + condition["name"] + "' failed")
-                            exitCode = 1
+                                self.logger.error(errorText + " " + generictext + " '" + condition["name"] + "' failed")
+                            exitCode = errorExitCode
                 
                 except Exception as e:
-                    self.logger.error("[ERROR] Test '" + condition["name"] + "' failed because file " + condition["file"] + " does not exists. " + e)
-                    exitCode = 1
+                    self.logger.error(errorText + " " + generictext + " '" + condition["name"] + "' failed because file " + condition["file"] + " does not exists. " + e)
+                    exitCode = errorExitCode
                     
         except Exception as e:
             exitCode = 1
