@@ -71,6 +71,7 @@ wdltest -t test.json
                 {
                     "file":"bco",
                     "name":"Description domain exists and is not empty",
+                    "warning":"true",
                     "command":"grep -q -m1 descripcion_domain $file && jq -e 'if (.description_domain | length) == 0 then false else true end' $file"
                 },
                 {
