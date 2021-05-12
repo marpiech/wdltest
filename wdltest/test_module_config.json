@@ -16,6 +16,12 @@
               "panel_hpo.phenotypes_description": "Increased height, disproportionately long limbs and digits, anterior chest deformity, mild to moderate joint laxity, vertebral column deformity (scoliosis and thoracic lordosis), and a narrow, highly arched palate with crowding of the teeth are frequent skeletal features"
             },
             "conditions": [
+                {
+                    "file":"ufo",
+                    "name":"Ufo exists",
+                    "error_message":"Ufo does not exist",
+                    "command":"echo $file"
+                }
             ]
         },
         {

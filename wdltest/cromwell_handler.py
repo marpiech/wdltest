@@ -54,22 +54,22 @@ class CromwellHandler(object):
         if(not os.path.isdir(self.basePath)):
             os.makedirs(self.basePath)
             os.chmod(self.basePath, 0o776)
-        self.runPath = self.basePath + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "/" + id
-        if(not os.path.isdir(self.runPath)):
-            os.makedirs(self.runPath)
-            os.chmod(self.runPath, 0o776)
-        self.inputPath = self.runPath + "/inputs.json"
-        self.logPath = self.runPath + "/cromwell-execution.log"
+        runPath = self.basePath + "/" + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "/" + id
+        if(not os.path.isdir(runPath)):
+            os.makedirs(runPath)
+            os.chmod(runPath, 0o776)
+        self.inputPath = runPath + "/inputs.json"
+        logPath = runPath + "/cromwell-execution.log"
 
         self.returnCode = -1
-        self.logger.debug("PATH: " + self.runPath)
+        self.logger.debug("PATH: " + runPath)
         with open(self.inputPath, "w") as inputs_file:
             print(json.dumps(inputs), file=inputs_file)
         bashCommand = "java -Dconfig.file=" + self.config['paths']['dir'] + "/cromwell.cfg" + " -jar " + self.config['paths']['dir'] + "/cromwell.jar run " + wdl + " --inputs " + self.inputPath
-        self.cromwellProcess = subprocess.Popen(bashCommand.split(), cwd=self.runPath, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.cromwellProcess = subprocess.Popen(bashCommand.split(), cwd=runPath, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.log = ""
         self.status = "Running"
-        with open(self.logPath, "w") as log_file:
+        with open(logPath, "w") as log_file:
             for line in iter(self.cromwellProcess.stdout.readline, ""):
                 printline = line.decode("utf-8").replace('\n', '')
                 if "to Done" in printline:
@@ -90,6 +90,9 @@ class CromwellHandler(object):
             rawoutputs = rawoutputs["outputs"]
             self.outputs = dict()
             for key in rawoutputs:
+                rawoutputs[key] = str(rawoutputs[key])
+                print("Raw ->" + key + str(rawoutputs[key]))
+            for key in rawoutputs:
                 try:
                     self.outputs[key.split('.')[-1]] = rawoutputs[key]
                 except Exception as e:
@@ -97,12 +100,12 @@ class CromwellHandler(object):
             self.cromwellProcess.stdout.close()
             self.returnCode = self.cromwellProcess.wait()
             self.logger.debug("Finished run")
-            self.logger.info("Path to log " + self.logPath)
+            self.logger.info("Path to log " + logPath)
         else:
             self.outputs = dict()
             self.cromwellProcess.stdout.close()
             self.logger.info("Workflow failed")
-            self.logger.info("Path to log " + self.logPath)
+            self.logger.info("Path to log " + logPath)
             self.returnCode = 1
 
     def getStatus(self):
