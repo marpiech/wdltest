@@ -8,7 +8,7 @@ import configparser
 
 class Wdltest(object):
 
-    def __init__(self, testConfigFile = os.path.dirname(__file__) + "/test_module_config.json", configFile = os.path.dirname(__file__) + "/wdltest.cfg", index = -1):
+    def __init__(self, testConfigFile = os.path.dirname(__file__) + "/test_config.json", configFile = os.path.dirname(__file__) + "/wdltest.cfg", index = -1):
         self.logger = logging.getLogger(__name__)
         self.logger.info('Reading config')
         config = self.getConfig(configFile)

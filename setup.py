@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="wdltest",
-    version="1.13.0",
+    version="1.14.0",
     author="Marcin Piechota",
     author_email="piechota.marcin@gmail.com",
     description="Package for testing wdl workflows",

@@ -4,7 +4,7 @@ Wdltest is python3 package to test wdl workflows. It requires java JDK to run Cr
 
 ## How to install
 ```
-pip3 install --upgrade --index-url https://test.pypi.org/simple/ --no-deps wdltest==0.0.10
+pip3 install --upgrade --index-url https://test.pypi.org/simple/ --no-deps wdltest==1.14.0
 ```
 
 ## How to run
@@ -95,7 +95,7 @@ wdltest -t test.json
 ## development
 ### test
 ```
-ROOTDIR="/home/marpiech/workflows" python3 setup.py nosetests -s
+ROOTDIR=$(pwd) python3 setup.py nosetests -s
 ```
 ### build
 ```
@@ -116,5 +116,5 @@ ps aux | grep Dweb | cut -d " " -f 2 | xargs kill -9
 ps aux | grep Dweb
 ```
 ## Versions
-### 0.0.10
-Added return code 1 on failure
+### 1.14.0
+Resolved bug with Array outputs

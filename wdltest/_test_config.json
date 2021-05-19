@@ -1,0 +1,209 @@
+{
+    "wdl":"${ROOTDIR}/src/main/wdl/tasks/vcf-filter-freq/vcf-filter-freq.wdl",
+    "tests": [
+        {
+            "name":"Primary test",
+            "order": 1,
+            "inputs": {
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_gz": "${ROOTDIR}/src/test/resources/data/vcf/chr15.282-chr15_47497301-49497301.annotated-with-frequencies.vcf.gz",
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_gz_tbi": "${ROOTDIR}/src/test/resources/data/vcf/chr15.282-chr15_47497301-49497301.annotated-with-frequencies.vcf.gz.tbi",
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_basename": "282-chr15_47497301-49497301"
+            },
+            "conditions": [
+                {
+                    "name":"Provenance domain exists",
+                    "file":"bco",
+                    "error_message":"Provenance domain not found in bco",
+                    "command":"cat $file | grep -q provenance_domain"
+                },
+                {
+                    "name":"Missing file exists",
+                    "file":"missing",
+                    "error_message":"Missing file not found in missing",
+                    "command":"cat $file | grep -q provenance_domain"
+                },
+                {
+                    "name":"Execution domain exists",
+                    "file":"bco",
+                    "error_message":"Execution domain not found in bco",
+                    "command":"cat $file | grep -q execution_domain"
+                },
+                {
+                    "name":"Parametric domain exists",
+                    "file":"bco",
+                    "error_message":"Parametric domain not found in bco",
+                    "command":"cat $file | grep -q parametric_domain"
+                },
+                {
+                    "name":"Description domain exists",
+                    "file":"bco",
+                    "error_message":"Description domain not found in bco",
+                    "command":"cat $file | grep -q description_domain"
+                },
+                {
+                    "name":"Provenance domain not empty",
+                    "file":"bco",
+                    "error_message":"Provenance domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Execution domain not empty",
+                    "file":"bco",
+                    "error_message":"Execution domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Parametric domain not empty",
+                    "file":"bco",
+                    "error_message":"Parametric domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Description domain not empty",
+                    "file":"bco",
+                    "error_message":"Description domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Stdout exits",
+                    "file":"stdout_log",
+                    "error_message":"Stdout does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"File filtered_by_frequencies_vcf_gz exists",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Filtered_by_frequencies_vcf_gz does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"File filtered_by_frequencies_vcf_gz_tbi exists",
+                    "file":"filtered_by_frequencies_vcf_gz_tbi",
+                    "error_message":"Filtered_by_frequencies_vcf_gz does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"Vcf contains proper header",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain ##fileformat=VCF",
+                    "command":"zcat $file | grep -q \"##fileformat=VCF\""
+                },
+                {
+                    "name":"Vcf contains #CHROM line",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain #CHROM",
+                    "command":"zcat $file | grep -q \"#CHROM\""
+                },
+                {
+                    "name":"Vcf contains contigs",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain ##contig=<ID=",
+                    "command":"zcat $file | grep -q \"##contig=<ID=\""
+                }
+
+            ]
+        },
+        {
+            "name":"Primary test",
+            "order": 1,
+            "inputs": {
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_gz": "${ROOTDIR}/src/test/resources/data/vcf/chr15.282-chr15_47497301-49497301.annotated-with-frequencies.vcf.gz",
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_gz_tbi": "${ROOTDIR}/src/test/resources/data/vcf/chr15.282-chr15_47497301-49497301.annotated-with-frequencies.vcf.gz.tbi",
+                "vcf_filter_freq_workflow.vcf_filter_freq.vcf_basename": "282-chr15_47497301-49497301"
+            },
+            "conditions": [
+                {
+                    "name":"Provenance domain exists",
+                    "file":"bco",
+                    "error_message":"Provenance domain not found in bco",
+                    "command":"cat $file | grep -q provenance_domain"
+                },
+                {
+                    "name":"Missing file exists",
+                    "file":"missing",
+                    "error_message":"Missing file not found in missing",
+                    "command":"cat $file | grep -q provenance_domain"
+                },
+                {
+                    "name":"Execution domain exists",
+                    "file":"bco",
+                    "error_message":"Execution domain not found in bco",
+                    "command":"cat $file | grep -q execution_domain"
+                },
+                {
+                    "name":"Parametric domain exists",
+                    "file":"bco",
+                    "error_message":"Parametric domain not found in bco",
+                    "command":"cat $file | grep -q parametric_domain"
+                },
+                {
+                    "name":"Description domain exists",
+                    "file":"bco",
+                    "error_message":"Description domain not found in bco",
+                    "command":"cat $file | grep -q description_domain"
+                },
+                {
+                    "name":"Provenance domain not empty",
+                    "file":"bco",
+                    "error_message":"Provenance domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Execution domain not empty",
+                    "file":"bco",
+                    "error_message":"Execution domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Parametric domain not empty",
+                    "file":"bco",
+                    "error_message":"Parametric domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Description domain not empty",
+                    "file":"bco",
+                    "error_message":"Description domain empty in bco",
+                    "command":"cat $file | jq -e 'if (.provenance_domain | length) == 0 then false else true end'"
+                },
+                {
+                    "name":"Stdout exits",
+                    "file":"stdout_log",
+                    "error_message":"Stdout does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"File filtered_by_frequencies_vcf_gz exists",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Filtered_by_frequencies_vcf_gz does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"File filtered_by_frequencies_vcf_gz_tbi exists",
+                    "file":"filtered_by_frequencies_vcf_gz_tbi",
+                    "error_message":"Filtered_by_frequencies_vcf_gz does not exist",
+                    "command":"echo $file"
+                },
+                {
+                    "name":"Vcf contains proper header",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain ##fileformat=VCF",
+                    "command":"zcat $file | grep -q \"##fileformat=VCF\""
+                },
+                {
+                    "name":"Vcf contains #CHROM line",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain #CHROM",
+                    "command":"zcat $file | grep -q \"#CHROM\""
+                },
+                {
+                    "name":"Vcf contains contigs",
+                    "file":"filtered_by_frequencies_vcf_gz",
+                    "error_message":"Vcf does not contain ##contig=<ID=",
+                    "command":"zcat $file | grep -q \"##contig=<ID=\""
+                }
+
+            ]
+        }
+    ]
+}

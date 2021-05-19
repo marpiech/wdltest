@@ -90,8 +90,8 @@ class CromwellHandler(object):
             rawoutputs = rawoutputs["outputs"]
             self.outputs = dict()
             for key in rawoutputs:
-                rawoutputs[key] = str(rawoutputs[key])
-                print("Raw ->" + key + str(rawoutputs[key]))
+                if not isinstance(rawoutputs[key], list):
+                    rawoutputs[key] = str(rawoutputs[key])
             for key in rawoutputs:
                 try:
                     self.outputs[key.split('.')[-1]] = rawoutputs[key]

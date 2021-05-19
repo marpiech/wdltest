@@ -54,6 +54,8 @@ class TestRunner(object):
                 return 0
         try:
             self.logger.info("Test name: " + str(testJson["name"]))
+            if not "inputs" in testJson:
+                testJson["inputs"] = dict()
             self.cromwell.submitJob(self.configuration["wdl"], testJson["inputs"], str(testIndex))
             status = "Started"
             start = time.time()
