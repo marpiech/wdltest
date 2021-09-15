@@ -69,6 +69,13 @@ class TestRunner(object):
                 diff = int(time.time() - start)
                 print("Cromwell job status " + status + " " + str(diff) + "s                     ", end ="\r")
             print()
+            if "expecterror" in testJson and testJson["expecterror"]:
+                if self.cromwell.returnCode > 0:
+                    self.logger.info("[PASSED] test finished with expected Error")
+                else:
+                    self.logger.error("[ERROR] test succeded but expected failed")
+                    exitCode = errorExitCode
+                testJson["conditions"] = []
             for condition in testJson["conditions"]:
                 errorText = "[ERROR]"
                 errorExitCode = 1

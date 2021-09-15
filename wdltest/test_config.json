@@ -54,6 +54,14 @@
                     "command":"cat $file | grep -q -v 'TWO'"
                 }
             ]
+        },
+        {
+            "name":"Error test",
+            "order": 3,
+            "inputs": {
+                "test.testinput":"error"
+            },
+            "expecterror": true
         }
     ]
 }

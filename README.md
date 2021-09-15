@@ -34,6 +34,20 @@ wdltest -t test.json
             ]
         },
         {
+            "name":"Secondary test",
+            "errorcode": 401
+            "inputs": {
+              "panel_hpo.hpo_terms": "HP:0001679, HP:0007018. HP:0000722, HP:0000256",
+              "panel_hpo.genes": "HTT",
+              "panel_hpo.diseases": "Osteogenesis imperfecta, Ehlers-Danlos",
+              "panel_hpo.sample_id": "test",
+              "panel_hpo.panel_names": ["ACMG_Incidental_Findings", "COVID-19'_research", "Cancer_Germline", "Cardiovascular_disorders"],
+              "panel_hpo.phenotypes_description": "Increased height, disproportionately long limbs and digits, anterior chest deformity, mild to moderate joint laxity, vertebral column deformity (scoliosis and thoracic lordosis), and a narrow, highly arched palate with crowding of the teeth are frequent skeletal features"
+            },
+            "conditions": [
+            ]
+        },
+        {
             "name":"Primary test",
             "inputs": {
               "panel_hpo.hpo_terms": "HP:0001679, HP:0007018. HP:0000722, HP:0000256",

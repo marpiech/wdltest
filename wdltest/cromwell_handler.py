@@ -106,7 +106,8 @@ class CromwellHandler(object):
             self.cromwellProcess.stdout.close()
             self.logger.info("Workflow failed")
             self.logger.info("Path to log " + logPath)
-            self.returnCode = 1
+            self.cromwellProcess.wait()
+            self.returnCode = self.cromwellProcess.returncode
 
     def getStatus(self):
         if self.returnCode == -1:

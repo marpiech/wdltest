@@ -25,6 +25,7 @@ task task_one {
 
     command {
         echo ${testinput}ONE
+        if [ "${testinput}" == "error" ]; then exit 1; fi
     }
 
     output {
