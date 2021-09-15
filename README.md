@@ -35,7 +35,7 @@ wdltest -t test.json
         },
         {
             "name":"Secondary test",
-            "errorcode": 401
+            "expecterror": true
             "inputs": {
               "panel_hpo.hpo_terms": "HP:0001679, HP:0007018. HP:0000722, HP:0000256",
               "panel_hpo.genes": "HTT",
