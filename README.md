@@ -51,7 +51,7 @@ It is possible to use environment variables in scripts using `${var_name}` notat
             ]
         },
         {
-            "name":"Secondary test",
+            "name":"Error test",
             "expecterror": true
             "inputs": {
               "panel_hpo.hpo_terms": "HP:0001679, HP:0007018. HP:0000722, HP:0000256",
