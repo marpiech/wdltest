@@ -1,10 +1,14 @@
 # wdltest
 
-Wdltest is python3 package to test wdl workflows. It requires java JDK to run Cromwell.
+Wdltest is python3 package to test wdl workflows. 
+
+## Requirements
+- Java (version at least 8)
+- Python3 (>= 3.7)
 
 ## How to install
 ```
-pip3 install --upgrade --index-url https://test.pypi.org/simple/ --no-deps wdltest==1.14.0
+pip3 install --upgrade wdltest==1.15.0
 ```
 
 ## How to run
@@ -13,6 +17,19 @@ wdltest -t test.json
 ```
 
 ## How to configure
+It is possible to use environment variables in scripts using `${var_name}` notation  
+### wdltest configuration parameters
+- `wdl` - path to wdl file  
+- `threads` - number of threads to utilize
+- `tests` - array of test configurations
+### test configuration parameters
+- `name` - name of test
+- `bcoCheck` - flag (true/false) informing whether to check if bco.json is generated
+- `tsdoutCheck` - flag (true/false) informing whether to check if stdout is generated
+- `expecterror` - flag (true/false) informing if the test should end with fail (conditions can be set as emptyy array then)
+- `inputs` - inputs for wdl execution
+- `conditions` - array of conditions to be met for test to be passed
+### Example test configuration
 ```
 {
     "wdl":"${ROOTDIR}/src/main/wdl/modules/panel-hpo/panel-hpo.wdl",
