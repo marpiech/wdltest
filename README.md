@@ -29,6 +29,13 @@ It is possible to use environment variables in scripts using `${var_name}` notat
 - `expecterror` - flag (true/false) informing if the test should end with fail (conditions can be set as emptyy array then)
 - `inputs` - inputs for wdl execution
 - `conditions` - array of conditions to be met for test to be passed
+### condition parameters
+- `file` - name of output
+- `index` - optional index if output is array. Default: `0`
+- `name` - name of unit test to be printes
+- `error_message` - error message in case of test failure
+- `command` - test command. Status `0` gives succeed status.
+
 ### Example test configuration
 ```
 {
